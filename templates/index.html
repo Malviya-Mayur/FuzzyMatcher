@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FuzzyMatcher Studio</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-elements">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>FuzzyMatcher Studio</h1>
+            <p>Advanced text matching with intelligent scoring</p>
+        </header>
+
+        <main>
+            <div class="card file-upload-section">
+                <h2>1. Data Sources</h2>
+                <div class="settings-grid" style="margin-bottom: 1.5rem;">
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label for="csv-separator">CSV Separator</label>
+                        <select id="csv-separator">
+                            <option value=",">Comma (,)</option>
+                            <option value=";">Semicolon (;)</option>
+                            <option value="\t">Tab</option>
+                        </select>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label for="csv-quotechar">Text Qualifier</label>
+                        <select id="csv-quotechar">
+                            <option value='"' >Double Quote (")</option>
+                            <option value="'">Single Quote (')</option>
+                            <option value="">None</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="upload-grid">
+                    <div class="upload-box" id="target-upload-box">
+                        <input type="file" id="target-file" accept=".csv, .xls, .xlsx" hidden>
+                        <label for="target-file" class="upload-label">
+                            <span class="icon">📄</span>
+                            <span class="text" id="target-file-name">Select Target File</span>
+                        </label>
+                        <div class="loader" id="target-loader"></div>
+                    </div>
+                    
+                    <div class="upload-box" id="source-upload-box">
+                        <input type="file" id="source-file" accept=".csv, .xls, .xlsx" hidden>
+                        <label for="source-file" class="upload-label">
+                            <span class="icon">📁</span>
+                            <span class="text" id="source-file-name">Select Source File</span>
+                        </label>
+                        <div class="loader" id="source-loader"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card columns-section disabled" id="columns-section">
+                <h2>2. Column Mapping</h2>
+                <div class="input-group">
+                    <label>Target Column</label>
+                    <select id="target-col-select" disabled>
+                        <option value="">Upload Target File First</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Source Column</label>
+                    <select id="source-col-select" disabled>
+                        <option value="">Upload Source File First</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card settings-section">
+                <h2>3. Match Settings</h2>
+                <div class="settings-grid">
+                    <div class="settings-main">
+                        <div class="input-group">
+                            <label for="scorer">Scorer Algorithm</label>
+                            <select id="scorer">
+                                <option value="smart">Smart (Ensemble)</option>
+                                <option value="ratio">Ratio</option>
+                                <option value="partial_ratio">Partial Ratio</option>
+                                <option value="token_sort_ratio">Token Sort Ratio</option>
+                                <option value="token_set_ratio">Token Set Ratio</option>
+                                <option value="WRatio">WRatio</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="threshold">Match Threshold (<span id="threshold-val">80</span>%)</label>
+                            <input type="range" id="threshold" min="0" max="100" value="80">
+                        </div>
+                        <div class="input-group">
+                            <label for="export-format">Export Format</label>
+                            <select id="export-format">
+                                <option value="xlsx">Excel (.xlsx)</option>
+                                <option value="csv">CSV (.csv)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-options">
+                        <label>Preprocessing</label>
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="opt-lowercase" checked>
+                            <span class="checkmark"></span> Lowercase
+                        </label>
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="opt-trim" checked>
+                            <span class="checkmark"></span> Trim Whitespace
+                        </label>
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="opt-remove-punct">
+                            <span class="checkmark"></span> Remove Punctuation
+                        </label>
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="opt-remove-stopwords">
+                            <span class="checkmark"></span> Remove Stopwords
+                        </label>
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="opt-stem">
+                            <span class="checkmark"></span> Stem Words
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-section">
+                <button id="run-btn" class="primary-btn" disabled>
+                    <span class="btn-text">Run Match</span>
+                    <div class="btn-loader" id="run-loader"></div>
+                </button>
+                <div id="status-message" class="status-message"></div>
+                <a id="download-btn" class="secondary-btn hidden" href="#" download>
+                    Download Results
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
