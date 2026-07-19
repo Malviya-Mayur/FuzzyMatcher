@@ -72,6 +72,19 @@ _executor = ThreadPoolExecutor(max_workers=4)
 _scorers_dir = os.path.join(_base, "scorers")
 _plugin_names = load_plugin_scorers(_scorers_dir)
 
+# -------------------------------------------------------------------------
+# Heartbeat monitor (auto-shutdown)
+# -------------------------------------------------------------------------
+_last_heartbeat = time.time()
+_monitor_started = False
+
+def _heartbeat_monitor():
+    while True:
+        time.sleep(2)
+        if time.time() - _last_heartbeat > 5:
+            print("Heartbeat lost. Shutting down...")
+            os._exit(0)
+
 
 def _allowed(filename: str) -> bool:
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -106,6 +119,16 @@ async def index(request: Request):
 @app.get("/api/scorers")
 async def list_scorers():
     return get_all_scorer_names()
+
+
+@app.post("/api/heartbeat")
+async def heartbeat():
+    global _last_heartbeat, _monitor_started
+    _last_heartbeat = time.time()
+    if not _monitor_started:
+        _monitor_started = True
+        threading.Thread(target=_heartbeat_monitor, daemon=True).start()
+    return {"status": "ok"}
 
 
 @app.post("/api/upload")

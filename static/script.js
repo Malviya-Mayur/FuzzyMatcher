@@ -1,4 +1,4 @@
-﻿document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
     const targetFileInput  = document.getElementById('target-file');
     const sourceFileInput  = document.getElementById('source-file');
