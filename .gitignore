@@ -1,0 +1,19 @@
+# Environments
+venv/
+env/
+.env
+
+# PyInstaller / Build
+build/
+dist/
+*.exe
+*.spec
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# App specific
+uploads/
+Outputs/

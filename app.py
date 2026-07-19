@@ -13,8 +13,9 @@ if getattr(sys, 'frozen', False):
 else:
     app = Flask(__name__)
 
-UPLOAD_FOLDER = 'uploads'
-OUTPUT_FOLDER = 'Outputs'
+import tempfile
+UPLOAD_FOLDER = os.path.join(tempfile.gettempdir(), 'FuzzyMatcher_uploads')
+OUTPUT_FOLDER = os.path.join(tempfile.gettempdir(), 'FuzzyMatcher_Outputs')
 ALLOWED_EXTENSIONS = {'csv', 'xls', 'xlsx'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -78,7 +79,9 @@ def match():
         csv_separator = data.get('csv_separator', ',')
         csv_quotechar = data.get('csv_quotechar', '"')
         
-        output_filename = f"matched_{data['target_file']}_{data['source_file']}.{export_format}"
+        target_name = os.path.splitext(data['target_file'])[0]
+        source_name = os.path.splitext(data['source_file'])[0]
+        output_filename = f"matched_{target_name}_{source_name}.{export_format}"
         output_filepath = os.path.join(OUTPUT_FOLDER, output_filename)
         
         fuzzy_match(
@@ -108,11 +111,27 @@ if __name__ == '__main__':
     try:
         from waitress import serve
         import webbrowser
-        
-        # Automatically open the browser
-        webbrowser.open("http://127.0.0.1:5000")
-        
-        print("Starting production server on http://127.0.0.1:5000...")
+        import threading
+        import urllib.request
+
+        URL = "http://127.0.0.1:5000"
+
+        def _open_browser_when_ready():
+            """Poll the server until it responds, then open the browser."""
+            import time
+            for _ in range(60):          # try for up to 30 seconds
+                try:
+                    urllib.request.urlopen(URL, timeout=1)
+                    webbrowser.open(URL)  # server is up — open browser now
+                    return
+                except Exception:
+                    time.sleep(0.5)
+
+        # Launch browser-opener as a daemon thread so it doesn't block startup
+        t = threading.Thread(target=_open_browser_when_ready, daemon=True)
+        t.start()
+
+        print(f"Starting production server on {URL}...")
         serve(app, host='127.0.0.1', port=5000)
     except ImportError:
         print("Waitress not installed. Falling back to development server...")
