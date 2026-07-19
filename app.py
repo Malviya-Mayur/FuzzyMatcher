@@ -1,16 +1,32 @@
-﻿import os
+import os
 import sys
+
+# -------------------------------------------------------------------------
+# Redirect stdout/stderr to a log file so errors are always visible.
+# In --windowed mode sys.stdout and sys.stderr are None and crash uvicorn.
+# -------------------------------------------------------------------------
+_log_path = os.path.join(os.path.expanduser("~"), "FuzzyMatcher_log.txt")
+try:
+    _logfile = open(_log_path, 'w', encoding='utf-8', buffering=1)
+    if sys.stdout is None:
+        sys.stdout = _logfile
+    if sys.stderr is None:
+        sys.stderr = _logfile
+except Exception:
+    pass
+
 import uuid
 import time
+import socket
 import tempfile
 import threading
 from typing import Optional
 from concurrent.futures import ThreadPoolExecutor
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, BackgroundTasks
+import jinja2
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 from fastapi.requests import Request
 import pandas as pd
 from werkzeug.utils import secure_filename
@@ -25,7 +41,12 @@ if getattr(sys, 'frozen', False):
 else:
     _base = os.path.dirname(os.path.abspath(__file__))
 
-templates = Jinja2Templates(directory=os.path.join(_base, "templates"))
+# Use raw Jinja2 Environment — Starlette's Jinja2Templates wrapper has a
+# broken LRU cache (uses dict as key) that raises TypeError in some versions.
+_jinja_env = jinja2.Environment(
+    loader=jinja2.FileSystemLoader(os.path.join(_base, "templates")),
+    autoescape=True,
+)
 
 app = FastAPI(title="FuzzyMatcher Studio")
 app.mount("/static", StaticFiles(directory=os.path.join(_base, "static")), name="static")
@@ -42,16 +63,13 @@ os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 # -------------------------------------------------------------------------
 # Async job registry
 # -------------------------------------------------------------------------
-_jobs: dict = {}           # job_id -> job dict
+_jobs: dict = {}
 _executor = ThreadPoolExecutor(max_workers=4)
-
-# File-level preprocessed source cache: {(filepath, mtime): (orig_list, proc_list)}
-_file_cache: dict = {}
 
 # -------------------------------------------------------------------------
 # Startup: load plugin scorers
 # -------------------------------------------------------------------------
-_scorers_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scorers")
+_scorers_dir = os.path.join(_base, "scorers")
 _plugin_names = load_plugin_scorers(_scorers_dir)
 
 
@@ -79,7 +97,10 @@ def _get_columns(filepath: str, csv_separator: str = ',', csv_quotechar: str = '
 # -------------------------------------------------------------------------
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    # Build the static URL prefix so the template can reference /static/...
+    template = _jinja_env.get_template("index.html")
+    html = template.render()
+    return HTMLResponse(content=html)
 
 
 @app.get("/api/scorers")
@@ -106,7 +127,6 @@ async def upload_file(
 
 @app.post("/api/jobs")
 async def create_job(payload: dict):
-    """Start a match job asynchronously. Returns job_id immediately."""
     job_id = str(uuid.uuid4())
     _jobs[job_id] = {
         "status": "queued",
@@ -184,13 +204,29 @@ async def download_file(filename: str):
 
 
 # -------------------------------------------------------------------------
+# Port helpers
+# -------------------------------------------------------------------------
+def _find_free_port(start: int = 5000, end: int = 5100) -> int:
+    """Find a free TCP port in the range [start, end)."""
+    for port in range(start, end):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind(('127.0.0.1', port))
+                return port
+            except OSError:
+                continue
+    raise RuntimeError("No free port found in range 5000-5100")
+
+
+# -------------------------------------------------------------------------
 # Entry point
 # -------------------------------------------------------------------------
 if __name__ == '__main__':
-    import uvicorn
     import webbrowser
+    import uvicorn
 
-    URL = "http://127.0.0.1:5000"
+    port = _find_free_port()
+    URL = f"http://127.0.0.1:{port}"
 
     def _open_browser_when_ready():
         import urllib.request
@@ -206,4 +242,5 @@ if __name__ == '__main__':
     t.start()
 
     print(f"Starting FuzzyMatcher Studio on {URL} ...")
-    uvicorn.run(app, host="127.0.0.1", port=5000, log_level="warning")
+    print(f"Log file: {_log_path}")
+    uvicorn.run(app, host="127.0.0.1", port=port, log_level="warning")
