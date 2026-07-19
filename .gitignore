@@ -7,7 +7,6 @@ env/
 build/
 dist/
 *.exe
-*.spec
 
 # Python
 __pycache__/
