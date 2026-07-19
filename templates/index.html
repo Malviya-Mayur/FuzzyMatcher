@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FuzzyMatcher Studio</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -130,8 +130,21 @@
                             <input type="checkbox" id="opt-stem">
                             <span class="checkmark"></span> Stem Words
                         </label>
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="opt-normalize-accents" checked>
+                            <span class="checkmark"></span> Normalize Accents
+                        </label>
                     </div>
                 </div>
+            </div>
+
+            <!-- Progress Section (hidden by default) -->
+            <div class="card progress-section hidden" id="progress-section">
+                <h2>4. Progress</h2>
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill" id="progress-bar-fill"></div>
+                </div>
+                <div class="progress-label" id="progress-label">Starting…</div>
             </div>
 
             <div class="action-section">
@@ -147,6 +160,6 @@
         </main>
     </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="{{ url_for('static', path='script.js') }}"></script>
 </body>
 </html>

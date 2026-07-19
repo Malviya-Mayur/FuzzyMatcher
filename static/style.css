@@ -427,3 +427,31 @@ input[type=range]::-webkit-slider-thumb:hover {
         grid-template-columns: 1fr;
     }
 }
+
+/* ---- Progress bar ---- */
+.progress-section { margin-bottom: 0; }
+
+.progress-bar-wrap {
+    width: 100%;
+    height: 10px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: 0.6rem;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    transition: width 0.4s ease;
+    box-shadow: 0 0 10px rgba(59,130,246,0.5);
+}
+
+.progress-label {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    text-align: center;
+    letter-spacing: 0.02em;
+}
