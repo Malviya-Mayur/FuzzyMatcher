@@ -19,6 +19,15 @@ FuzzyMatcher Studio is a sleek, modern desktop-like web application designed for
 
 ---
 
+## Download Releases ⬇️
+
+Ready-to-use executable files are available in the [Releases](../../releases) section for both Windows and Linux. You don't need Python installed to run these!
+
+- **Windows**: Download `FuzzyMatcher_Windows.exe` and simply double-click to run.
+- **Linux**: Download `FuzzyMatcher_Linux`, grant it execution permissions (`chmod +x FuzzyMatcher_Linux`), and run it from your terminal (`./FuzzyMatcher_Linux`).
+
+---
+
 ## Installation & Setup 📦
 
 Ensure you have Python 3.8+ installed.
